@@ -128,8 +128,8 @@ def show_live_view():
                 if pred is None or conf is None:
                     st.info(f"Collecting data… {len(buffer)}/{buffer.maxlen} samples")
                 else:
-                    alert = get_alert(pred, conf)
-                    level, color = get_severity(conf)
+                    alert = st.session_state.alert_manager.get_alert(pred, conf)
+                    level, color = st.session_state.alert_manager.get_severity(conf)
 
                     col1, col2 = st.columns(2)
                     with col1:
@@ -143,7 +143,7 @@ def show_live_view():
                         st.markdown(f"### {alert}")
 
                     if pred != 0:
-                        log_event(pred, conf, alert)
+                        st.session_state.detector.log_event(pred, conf, alert)
 
             # Keep placeholder for layout consistency
             with alert_placeholder.container():

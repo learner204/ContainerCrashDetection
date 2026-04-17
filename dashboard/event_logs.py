@@ -10,7 +10,9 @@ def show_event_logs():
     st.markdown('<div class="page-subtitle">Complete log of detected events</div>', unsafe_allow_html=True)
     
     try:
-        conn = get_connection()
+        # Use DatabaseManager from session state
+        db_mgr = st.session_state.db_manager
+        conn = db_mgr.get_connection()
         df = pd.read_sql("SELECT * FROM events ORDER BY timestamp DESC", conn)
         conn.close()
 
@@ -103,7 +105,7 @@ def show_event_logs():
             )
         with col2:
             if st.button("🗑️ Clear All", type="secondary"):
-                conn = get_connection()
+                conn = st.session_state.db_manager.get_connection()
                 conn.execute("DELETE FROM events")
                 conn.commit()
                 conn.close()

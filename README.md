@@ -72,6 +72,22 @@ streamlit run app.py
 
 Once the server starts, you can access the dashboard in your browser at `http://localhost:8501`.
 
+## Alpha Testing
+
+An initial alpha test suite is included under `tests/` to validate syntax and core behaviors across the project modules.
+
+Run all tests with:
+
+```bash
+pytest -q
+```
+
+Run only alpha smoke coverage:
+
+```bash
+pytest -q tests/test_alpha_smoke_all_files.py
+```
+
 ## 🧠 Machine Learning
 
 The system uses a Scikit-Learn based model trained on engineered features from accelerometer signals. Features include:

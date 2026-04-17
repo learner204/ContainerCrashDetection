@@ -4,16 +4,15 @@ import streamlit as st
 import plotly.graph_objs as go
 import time
 
-from sensors.signal_generator import generate_signal
-from services.detector import predict, log_event
-from services.alert_engine import get_alert
+from sensors.signal_generator import SignalGenerator
+from services.detector import CrashDetector
+from services.alert_engine import AlertManager
 from config.settings import EVENT_LABELS
-from database.db import init_db
+from database.db import DatabaseManager
 from dashboard.event_logs import show_event_logs
 from dashboard.live_view import show_live_view
 from dashboard.confidence_gauge import confidence_gauge
 from dashboard.severity_bar import severity_bar
-from services.severity import get_severity
 
 # Page configuration must be first Streamlit command
 st.set_page_config(
@@ -301,9 +300,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Initialize application state objects
+if 'db_manager' not in st.session_state:
+    st.session_state.db_manager = DatabaseManager()
+if 'detector' not in st.session_state:
+    st.session_state.detector = CrashDetector()
+if 'alert_manager' not in st.session_state:
+    st.session_state.alert_manager = AlertManager()
+if 'signal_generator' not in st.session_state:
+    st.session_state.signal_generator = SignalGenerator()
+
 # Initialize database
 try:
-    init_db()
+    st.session_state.db_manager.init_db()
 except Exception as e:
     st.error(f"⚠️ Database initialization warning: {str(e)}")
 
@@ -415,15 +424,15 @@ if page == "Live Monitoring":
     
     if analyze_btn or 'last_analysis' not in st.session_state:
         with st.spinner("🔄 Analyzing sensor signal..."):
-            # Generate signal and make prediction
-            signal = generate_signal(label)
-            pred, conf = predict(signal)
+            # Use objects from session state
+            signal = st.session_state.signal_generator.generate_signal(label)
+            pred, conf = st.session_state.detector.predict(signal)
             
             # Ensure proper type conversion
             pred = int(pred)
             conf = float(conf)
             
-            alert = get_alert(pred, conf)
+            alert = st.session_state.alert_manager.get_alert(pred, conf)
             
             # Store results in session state
             st.session_state.last_analysis = {
@@ -437,7 +446,7 @@ if page == "Live Monitoring":
             
             # Log event if not normal
             if pred != 0:
-                log_event(pred, conf, alert)
+                st.session_state.detector.log_event(pred, conf, alert)
                 st.success("✅ Event has been logged to the event history")
     
     # Display results if available
@@ -510,7 +519,7 @@ if page == "Live Monitoring":
 
         # Reuse live components: confidence gauge + severity bar
         st.markdown("### 🚦 Severity & Confidence")
-        level, color = get_severity(result['conf'])
+        level, color = st.session_state.alert_manager.get_severity(result['conf'])
         gauge_col, severity_col = st.columns(2)
         analysis_id = result.get('analysis_id', 0)
         with gauge_col:
