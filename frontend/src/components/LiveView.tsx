@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { WS_URL, api } from '../services/api';
 import type { StreamData } from '../types';
 import SignalChart from './SignalChart';

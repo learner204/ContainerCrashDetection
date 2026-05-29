@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/maplibre';
 import * as maptilersdk from '@maptiler/sdk';
 import { api } from '../services/api';
-import { Ship, AlertTriangle, Shield, TrendingUp, DollarSign, Layers, Activity } from 'lucide-react';
+import { Ship, AlertTriangle, DollarSign, Layers, Activity } from 'lucide-react';
 
 const MAPTILER_KEY = 'SUcVoJR2d0QVGbessECU';
 maptilersdk.config.apiKey = MAPTILER_KEY;
 
 const FleetView: React.FC = () => {
   const [fleet, setFleet] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFleet = async () => {
