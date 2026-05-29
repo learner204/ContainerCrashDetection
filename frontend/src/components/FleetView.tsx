@@ -17,8 +17,6 @@ const FleetView: React.FC = () => {
         setFleet(data);
       } catch (error) {
         console.error("Failed to fetch fleet:", error);
-      } finally {
-        setLoading(false);
       }
     };
 

@@ -4,7 +4,7 @@ import type { ViewStateChangeEvent } from "react-map-gl/maplibre";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Anchor, AlertCircle, Wind } from "lucide-react";
+import { Anchor, AlertCircle } from "lucide-react";
 
 // MapTiler Configuration
 const MAPTILER_KEY = "SUcVoJR2d0QVGbessECU";
@@ -16,7 +16,6 @@ interface RiskMapProps {
 }
 
 const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
-  const [showWeather, setShowWeather] = React.useState(false);
   const [viewport, setViewport] = React.useState({
     latitude: 35,
     longitude: 170,
@@ -87,13 +86,6 @@ const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
         projection={"globe" as any}
       >
         <NavigationControl position="top-right" />
-
-        {/* Weather Layer (Open-Meteo / MapTiler Wind Tiles) */}
-        {showWeather && (
-          <Source id="weather-source" type="raster" tiles={[`https://api.maptiler.com/tiles/weather-wind/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`]} tileSize={256}>
-             <Layer id="weather-layer" type="raster" paint={{ "raster-opacity": 0.4 }} />
-          </Source>
-        )}
 
         <Source id="route-data" type="geojson" data={geojson}>
           <Layer

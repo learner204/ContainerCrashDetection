@@ -1,5 +1,5 @@
 import React from 'react';
-import { WS_URL, api } from '../services/api';
+import { api } from '../services/api';
 import type { StreamData } from '../types';
 import SignalChart from './SignalChart';
 import MapTracker from './MapTracker';
