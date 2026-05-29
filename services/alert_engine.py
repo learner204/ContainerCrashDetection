@@ -18,7 +18,7 @@ class AlertManager:
         elif pred == 1:
             return "⚠️ Mild Impact Detected (Low Confidence)"
         elif pred == 3:
-            return "📦 Container Shift Detected"
+            return "📢 PROACTIVE WARNING: High Instability Detected. Recommendation: Reduce speed and check lashing tension."
         return "✅ Normal Operation"
 
     def get_severity(self, confidence):

@@ -21,6 +21,10 @@ from services.route_service import route_service
 
 app = FastAPI(title="Container Crash Detection API")
 
+@app.on_event("startup")
+async def startup_event():
+    db_manager.init_db()
+
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
@@ -51,8 +55,52 @@ active_voyage = {
     "probability": 0.05,
     "waypoints": SHANGHAI_LA_ROUTE,
     "route_name": "Shanghai to Los Angeles",
-    "is_active": False
+    "is_active": False,
+    "start_time": 0
 }
+
+# Fleet Simulation State
+FLEET_NAMES = ["MV Arctic Explorer", "MV Pacific Horizon", "MV Atlantic Shield", "MV Indian Star", "MV Southern Cross", "MV Northern Light", "MV Global Carrier", "MV Ocean Titan", "MV Emerald Wave", "MV Sapphire Sky"]
+fleet_vessels = []
+
+def initialize_fleet():
+    global fleet_vessels
+    for name in FLEET_NAMES:
+        # Pick two random ports for a route
+        from config.routes import SHANGHAI_LA_ROUTE # Use as template
+        vessel = {
+            "id": name.lower().replace(" ", "_"),
+            "name": name,
+            "vessel_type": "Post-Panamax Container",
+            "lat": random.uniform(-40, 60),
+            "lng": random.uniform(-170, 170),
+            "status": random.choice(["Normal", "Warning", "Normal", "Normal"]), # Weighted to Normal
+            "risk_score": random.uniform(0.05, 0.4),
+            "cargo_value": random.uniform(10, 80), # Millions USD
+            "teu_count": random.randint(5000, 15000),
+            "destination": "Random Port",
+            "speed": random.uniform(18.0, 24.0)
+        }
+        fleet_vessels.append(vessel)
+
+initialize_fleet()
+
+def update_fleet_positions():
+    global fleet_vessels
+    for v in fleet_vessels:
+        # Move them slightly
+        v["lat"] += random.uniform(-0.01, 0.01)
+        v["lng"] += random.uniform(-0.01, 0.01)
+        # Randomly jitter risk
+        v["risk_score"] = max(0.05, min(0.95, v["risk_score"] + random.uniform(-0.02, 0.02)))
+        if v["risk_score"] > 0.7: v["status"] = "Critical"
+        elif v["risk_score"] > 0.4: v["status"] = "Warning"
+        else: v["status"] = "Normal"
+
+@app.get("/api/fleet")
+async def get_fleet():
+    update_fleet_positions()
+    return fleet_vessels
 
 class Location(BaseModel):
     lat: float
@@ -129,13 +177,14 @@ async def assess_voyage(request: VoyageRequest):
             "probability": float(prob),
             "waypoints": named_waypoints,
             "route_name": f"{request.origin.name} to {request.destination.name}",
-            "is_active": False
+            "is_active": False # Reset activity until explicitly started
         }
         
         return {
             "probability": float(prob),
             "risk_level": risk_level,
             "waypoints": waypoints,
+            "route_name": active_voyage["route_name"],
             "weather_summary": {
                 **weather,
                 "duration_days": duration_days,
@@ -147,16 +196,25 @@ async def assess_voyage(request: VoyageRequest):
 
 def get_current_position():
     import time
-    # Cycle duration in seconds (3600s = 1 hour for a full trip)
-    cycle_duration = 3600 
-    progress = (time.time() % cycle_duration) / cycle_duration
+    if not active_voyage["is_active"] or active_voyage["start_time"] == 0:
+        route = active_voyage.get("waypoints", SHANGHAI_LA_ROUTE)
+        return {
+            "lat": route[0]["lat"],
+            "lng": route[0]["lng"],
+            "location_name": route[0].get("name", "Origin")
+        }
+
+    # Voyage lasts 10 minutes (600 seconds) for demo purposes
+    voyage_duration = 600 
+    elapsed = time.time() - active_voyage["start_time"]
+    progress = min(1.0, elapsed / voyage_duration)
     
     route = active_voyage.get("waypoints", SHANGHAI_LA_ROUTE)
     num_points = len(route)
     
     idx = int(progress * (num_points - 1))
-    next_idx = (idx + 1) % num_points
-    segment_progress = (progress * (num_points - 1)) - idx
+    next_idx = min(idx + 1, num_points - 1)
+    segment_progress = (progress * (num_points - 1)) - idx if num_points > 1 else 0
     
     p1 = route[idx]
     p2 = route[next_idx]
@@ -206,6 +264,8 @@ async def analyze_signal(label_id: int):
 async def start_voyage():
     global active_voyage
     active_voyage["is_active"] = True
+    import time
+    active_voyage["start_time"] = time.time()
     return {"status": "Voyage started"}
 
 @app.websocket("/ws/stream")
@@ -225,8 +285,11 @@ async def websocket_endpoint(websocket: WebSocket):
             label = 0
             # Higher predicted probability = higher frequency of actual crash events
             event_threshold = active_voyage["probability"] * 0.15 
-            if random.random() < event_threshold:
+            r = random.random()
+            if r < event_threshold:
                 label = random.choice([1, 2])
+            elif r < event_threshold * 2.5: # 2.5x more likely to see a warning before a crash
+                label = 3 # Pre-Crash Warning
                 
             signal = signal_generator.generate_signal(
                 label, 
@@ -234,7 +297,11 @@ async def websocket_endpoint(websocket: WebSocket):
                 wind_speed=active_voyage["wind_speed"],
                 alignment_score=active_voyage["alignment_score"]
             )
-            pred, conf = detector.predict(signal)
+            # Override detector for simulation demo if label is 3
+            if label == 3:
+                pred, conf = 3, 0.85
+            else:
+                pred, conf = detector.predict(signal)
             alert = alert_manager.get_alert(pred, conf)
             
             # Operational Bridge: Log critical events to database

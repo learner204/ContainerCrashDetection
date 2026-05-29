@@ -5,26 +5,13 @@ import SignalChart from './SignalChart';
 import MapTracker from './MapTracker';
 import { Activity, AlertCircle, Shield, Anchor, Compass, Play } from 'lucide-react';
 
-const LiveView: React.FC = () => {
-  const [data, setData] = useState<StreamData | null>(null);
-  const [signalBuffer, setSignalBuffer] = useState<number[]>([]);
-  const [connected, setConnected] = useState(false);
-  const socketRef = useRef<WebSocket | null>(null);
+interface LiveViewProps {
+  data: StreamData | null;
+  signalBuffer: number[];
+  connected: boolean;
+}
 
-  useEffect(() => {
-    socketRef.current = new WebSocket(WS_URL);
-    socketRef.current.onopen = () => setConnected(true);
-    socketRef.current.onclose = () => setConnected(false);
-    socketRef.current.onmessage = (event) => {
-      const parsed: StreamData = JSON.parse(event.data);
-      setData(parsed);
-      if (parsed.is_active) {
-        setSignalBuffer(prev => [...prev, ...parsed.signal].slice(-250));
-      }
-    };
-    return () => socketRef.current?.close();
-  }, []);
-
+const LiveView: React.FC<LiveViewProps> = ({ data, signalBuffer, connected }) => {
   const handleStartVoyage = async () => {
     try {
       await api.startVoyage();

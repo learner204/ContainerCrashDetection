@@ -35,6 +35,13 @@ class SignalGenerator:
         elif label == 2: # Severe Crash
             severity = 7.0 + (3.0 * weather_noise_factor)
             signal = self.crash_signal(t, severity=severity, base_noise=base_noise_std)
+        elif label == 3: # Pre-Impact Warning (Instability)
+            # Higher jitter and variance, but no sudden spike
+            base = 0.5 * np.sin(2 * np.pi * 0.5 * t)
+            # Instability increases over time in the window
+            instability_ramp = np.linspace(1, 3, len(t))
+            noise = np.random.normal(0, base_noise_std * 3 * stability_factor * instability_ramp, len(t))
+            signal = base + noise
         else:
             severity = 4.0 + (2.0 * weather_noise_factor)
             signal = self.crash_signal(t, severity=severity, base_noise=base_noise_std) * np.sign(np.sin(t))

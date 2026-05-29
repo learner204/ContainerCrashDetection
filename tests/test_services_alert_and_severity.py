@@ -8,7 +8,7 @@ def test_alert_manager_paths():
     assert "Mild Impact Warning" in manager.get_alert(1, 0.9)
     assert "Low Confidence" in manager.get_alert(1, 0.1)
     assert "SEVERE CRASH" in manager.get_alert(2, 0.9)
-    assert "Container Shift" in manager.get_alert(3, 0.5)
+    assert "PROACTIVE WARNING" in manager.get_alert(3, 0.5)
 
 
 def test_alert_module_level_function():

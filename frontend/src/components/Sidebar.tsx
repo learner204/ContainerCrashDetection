@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Radio, History, Shield } from 'lucide-react';
+import { Activity, Radio, History, Shield, Globe } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -8,6 +8,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const menuItems = [
+    { id: 'fleet', label: 'Fleet Overview', icon: Globe },
     { id: 'risk', label: 'Risk Assessment', icon: Shield },
     { id: 'analysis', label: 'Analysis', icon: Activity },
     { id: 'live', label: 'Live Stream', icon: Radio },

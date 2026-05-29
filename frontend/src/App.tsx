@@ -1,13 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import RiskAssessmentView from './components/RiskAssessmentView';
 import AnalysisView from './components/AnalysisView';
 import LiveView from './components/LiveView';
 import HistoryView from './components/HistoryView';
+import FleetView from './components/FleetView';
+import { WS_URL } from './services/api';
+import type { StreamData } from './types';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('risk');
+  const [activeTab, setActiveTab] = useState('fleet');
   const [hasError, setHasError] = useState(false);
+
+  // Global Voyage State
+  const [streamData, setStreamData] = useState<StreamData | null>(null);
+  const [signalBuffer, setSignalBuffer] = useState<number[]>([]);
+  const [connected, setConnected] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    socketRef.current = new WebSocket(WS_URL);
+    socketRef.current.onopen = () => setConnected(true);
+    socketRef.current.onclose = () => setConnected(false);
+    socketRef.current.onmessage = (event) => {
+      const parsed: StreamData = JSON.parse(event.data);
+      setStreamData(parsed);
+      if (parsed.is_active) {
+        setSignalBuffer(prev => [...prev, ...parsed.signal].slice(-250));
+      }
+    };
+    return () => socketRef.current?.close();
+  }, []);
 
   // Simple error boundary effect
   useEffect(() => {
@@ -39,16 +62,18 @@ function App() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'fleet':
+        return <FleetView />;
       case 'risk':
         return <RiskAssessmentView setActiveTab={setActiveTab} />;
       case 'analysis':
         return <AnalysisView />;
       case 'live':
-        return <LiveView />;
+        return <LiveView data={streamData} signalBuffer={signalBuffer} connected={connected} />;
       case 'history':
         return <HistoryView />;
       default:
-        return <RiskAssessmentView setActiveTab={setActiveTab} />;
+        return <FleetView />;
     }
   };
 

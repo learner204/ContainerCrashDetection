@@ -17,5 +17,5 @@ def test_all_python_files_are_syntax_valid():
 
 def test_repo_entrypoints_exist():
     root = Path(__file__).resolve().parents[1]
-    assert (root / "app.py").exists()
+    assert (root / "api_server.py").exists()
     assert (root / "main.py").exists()

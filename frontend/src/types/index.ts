@@ -37,7 +37,7 @@ const EVENT_LABELS: Record<number, string> = {
   0: "Normal",
   1: "Mild Impact",
   2: "Severe Crash",
-  3: "Container Shift"
+  3: "Unstable (Pre-Crash)"
 };
 
 export type { EventLog, AnalysisResult };

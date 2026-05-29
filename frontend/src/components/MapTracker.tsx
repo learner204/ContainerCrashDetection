@@ -92,7 +92,7 @@ const MapTracker: React.FC<MapTrackerProps> = ({ lat, lng, location }) => {
         onMove={(evt: ViewStateChangeEvent) => setViewport(evt.viewState)}
         mapLib={maptilersdk as any}
         mapStyle={`https://api.maptiler.com/maps/basic-v2-dark/style.json?key=${MAPTILER_KEY}`}
-        projection={{ name: 'globe' } as any}
+        renderWorldCopies={false}
       >
         <NavigationControl position="top-right" />
         
