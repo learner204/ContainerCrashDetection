@@ -7,7 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Anchor, AlertCircle } from "lucide-react";
 
 // MapTiler Configuration
-const MAPTILER_KEY = "SUcVoJR2d0QVGbessECU";
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || 'SUcVoJR2d0QVGbessECU';
 maptilersdk.config.apiKey = MAPTILER_KEY;
 
 interface RiskMapProps {

@@ -51,7 +51,7 @@ function App() {
           <p className="text-gray-600 mb-6">Something went wrong while loading the dashboard. Please check the browser console (F12) for details.</p>
           <button 
             onClick={() => window.location.reload()}
-            className="bg-primary-blue text-white px-6 py-2 rounded-xl font-bold hover:bg-primary-dark transition-all"
+            className="bg-brand-primary text-white px-6 py-2 rounded-xl font-bold hover:bg-brand-dark transition-all"
           >
             Reload Application
           </button>

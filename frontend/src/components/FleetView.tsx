@@ -4,7 +4,7 @@ import * as maptilersdk from '@maptiler/sdk';
 import { api } from '../services/api';
 import { Ship, AlertTriangle, DollarSign, Layers, Activity } from 'lucide-react';
 
-const MAPTILER_KEY = 'SUcVoJR2d0QVGbessECU';
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || 'SUcVoJR2d0QVGbessECU';
 maptilersdk.config.apiKey = MAPTILER_KEY;
 
 const FleetView: React.FC = () => {

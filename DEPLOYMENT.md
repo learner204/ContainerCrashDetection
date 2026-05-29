@@ -19,8 +19,8 @@ This project is configured to be deployed with **Render** for the Python backend
 4. Before clicking **Deploy**, configure the following **Environment Variables**:
    - `VITE_API_URL`: Set this to your Render backend URL with `/api` appended (e.g., `https://container-crash-backend.onrender.com/api`)
    - `VITE_WS_URL`: Set this to your Render backend WebSocket URL (e.g., `wss://container-crash-backend.onrender.com/ws/stream`)
-5. Click **Deploy**.
-
+   - `VITE_MAPTILER_KEY`: (Optional) Your MapTiler API key for maps.
+   5. Click **Deploy**.
 ## 3. Verify
 
 Once both are deployed, open your Vercel frontend URL. It will automatically connect to your Render backend!

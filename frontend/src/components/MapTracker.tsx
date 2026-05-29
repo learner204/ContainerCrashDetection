@@ -5,7 +5,7 @@ import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 import { Anchor } from 'lucide-react';
 
-const MAPTILER_KEY = 'SUcVoJR2d0QVGbessECU';
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || 'SUcVoJR2d0QVGbessECU';
 maptilersdk.config.apiKey = MAPTILER_KEY;
 
 interface MapTrackerProps {
