@@ -7,14 +7,17 @@ import { ShieldCheck, AlertCircle, AlertTriangle, Clock } from 'lucide-react';
 const HistoryView: React.FC = () => {
   const [logs, setLogs] = useState<EventLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
+      setError(null);
       try {
         const data = await api.getHistory();
         setLogs(data);
-      } catch (error) {
-        console.error("Error fetching logs:", error);
+      } catch (err: any) {
+        console.error("Error fetching logs:", err);
+        setError("Failed to fetch event history. Please verify the backend is online.");
       } finally {
         setLoading(false);
       }
@@ -38,6 +41,16 @@ const HistoryView: React.FC = () => {
         <h1 className="text-3xl font-bold text-slate-900">Event History</h1>
         <p className="text-slate-500 mt-1">Audit log of all detected impact events.</p>
       </header>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-2">
+          <AlertTriangle size={18} />
+          <div>
+            <p className="font-semibold text-sm">History Error</p>
+            <p className="text-xs">{error}</p>
+          </div>
+        </div>
+      )}
 
       <div className="glass-card overflow-hidden">
         <table className="w-full text-left">

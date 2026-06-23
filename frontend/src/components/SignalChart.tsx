@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface SignalChartProps {
@@ -9,6 +9,8 @@ interface SignalChartProps {
 
 const SignalChart: React.FC<SignalChartProps> = ({ data, color = "#075985", title }) => {
   const chartData = data.map((val, i) => ({ index: i, value: val }));
+  const uniqueId = useId().replace(/:/g, '');
+  const gradientId = `colorValue-${uniqueId}`;
 
   return (
     <div className="glass-card p-6">
@@ -17,7 +19,7 @@ const SignalChart: React.FC<SignalChartProps> = ({ data, color = "#075985", titl
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color} stopOpacity={0.15}/>
                 <stop offset="95%" stopColor={color} stopOpacity={0}/>
               </linearGradient>
@@ -35,7 +37,7 @@ const SignalChart: React.FC<SignalChartProps> = ({ data, color = "#075985", titl
               stroke={color} 
               strokeWidth={3}
               fillOpacity={1} 
-              fill="url(#colorValue)" 
+              fill={`url(#${gradientId})`} 
               animationDuration={500}
             />
           </AreaChart>

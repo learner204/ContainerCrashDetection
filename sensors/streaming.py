@@ -1,3 +1,4 @@
+# NOTE: This module is currently unused in the project but kept for potential future streaming enhancements.
 from sensors.signal_generator import generate_signal
 
 def stream_signal(label):

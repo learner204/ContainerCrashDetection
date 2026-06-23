@@ -1,15 +1,17 @@
 # International Shipping Route: Shanghai (CNSHA) to Los Angeles (USLAX)
-# Approximated Great Circle Route points
+# Optimized Maritime Route avoiding landmasses
 
 SHANGHAI_LA_ROUTE = [
-    {"lat": 31.2304, "lng": 121.4737, "name": "Port of Shanghai"},
-    {"lat": 32.5000, "lng": 125.0000, "name": "East China Sea"},
-    {"lat": 35.0000, "lng": 140.0000, "name": "Off Coast of Japan"},
-    {"lat": 38.0000, "lng": 160.0000, "name": "North Pacific Ocean"},
-    {"lat": 40.0000, "lng": 180.0000, "name": "International Date Line"},
-    {"lat": 38.0000, "lng": -160.0000, "name": "Mid-Pacific"},
-    {"lat": 35.0000, "lng": -140.0000, "name": "Approaching West Coast"},
-    {"lat": 33.7701, "lng": -118.1937, "name": "Port of Los Angeles"}
+    {"lat": 30.60, "lng": 122.10, "name": "Yangshan Port (Shanghai)"},
+    {"lat": 31.00, "lng": 124.00, "name": "East China Sea Outer"},
+    {"lat": 32.50, "lng": 130.00, "name": "South of Kyushu"},
+    {"lat": 34.00, "lng": 140.00, "name": "Pacific Transit Hub (Japan)"},
+    {"lat": 38.00, "lng": 160.00, "name": "North Pacific Ocean"},
+    {"lat": 42.00, "lng": 180.00, "name": "International Date Line (High Seas)"},
+    {"lat": 40.00, "lng": -160.00, "name": "Mid-Pacific North"},
+    {"lat": 36.00, "lng": -130.00, "name": "Approaching West Coast"},
+    {"lat": 33.77, "lng": -118.25, "name": "Port of Los Angeles Outer"},
+    {"lat": 33.75, "lng": -118.22, "name": "Berth 400 (LA)"}
 ]
 
 # Vessel configuration

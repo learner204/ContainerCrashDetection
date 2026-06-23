@@ -10,16 +10,16 @@ class AlertManager:
         Generate professional alert messages based on prediction and confidence.
         """
         if confidence > self.thresholds["warning"] and pred == 2:
-            return "🚨 SEVERE CRASH DETECTED"
+            return "[CRITICAL] SEVERE CRASH DETECTED"
         elif pred == 2:
-            return "⚠️ Severe Crash Detected (Low Confidence)"
+            return "[WARNING] Severe Crash Detected (Low Confidence)"
         elif confidence > self.thresholds["normal"] and pred == 1:
-            return "⚠️ Mild Impact Warning"
+            return "[WARNING] Mild Impact Warning"
         elif pred == 1:
-            return "⚠️ Mild Impact Detected (Low Confidence)"
+            return "[WARNING] Mild Impact Detected (Low Confidence)"
         elif pred == 3:
-            return "📦 Container Shift Detected"
-        return "✅ Normal Operation"
+            return "[WARNING] Container Shift Detected"
+        return "[OK] Normal Operation"
 
     def get_severity(self, confidence):
         """

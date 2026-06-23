@@ -4,10 +4,10 @@ import type { ViewStateChangeEvent } from "react-map-gl/maplibre";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Anchor, AlertCircle, Wind } from "lucide-react";
+import { Anchor, AlertCircle } from "lucide-react";
 
 // MapTiler Configuration
-const MAPTILER_KEY = "SUcVoJR2d0QVGbessECU";
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || "SUcVoJR2d0QVGbessECU";
 maptilersdk.config.apiKey = MAPTILER_KEY;
 
 interface RiskMapProps {
@@ -16,7 +16,6 @@ interface RiskMapProps {
 }
 
 const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
-  const [showWeather, setShowWeather] = React.useState(false);
   const [viewport, setViewport] = React.useState({
     latitude: 35,
     longitude: 170,
@@ -88,12 +87,7 @@ const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
       >
         <NavigationControl position="top-right" />
 
-        {/* Weather Layer (Open-Meteo / MapTiler Wind Tiles) */}
-        {showWeather && (
-          <Source id="weather-source" type="raster" tiles={[`https://api.maptiler.com/tiles/weather-wind/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`]} tileSize={256}>
-             <Layer id="weather-layer" type="raster" paint={{ "raster-opacity": 0.4 }} />
-          </Source>
-        )}
+
 
         <Source id="route-data" type="geojson" data={geojson}>
           <Layer
@@ -115,8 +109,13 @@ const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
               longitude={waypoints[0].lng}
               anchor="bottom"
             >
-              <div className="bg-slate-900 p-1 rounded-full border-2 border-white shadow-lg">
-                <Anchor className="text-white" size={12} />
+              <div className="group relative">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Origin Port
+                </div>
+                <div className="bg-slate-900 p-1.5 rounded-full border-2 border-white shadow-lg">
+                  <Anchor className="text-white" size={14} />
+                </div>
               </div>
             </Marker>
             <Marker
@@ -124,8 +123,13 @@ const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
               longitude={waypoints[waypoints.length - 1].lng}
               anchor="bottom"
             >
-              <div className="bg-brand-primary p-1 rounded-full border-2 border-white shadow-lg">
-                <div className="w-2 h-2 bg-white rounded-full" />
+              <div className="group relative">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Destination Port
+                </div>
+                <div className="bg-brand-primary p-1.5 rounded-full border-2 border-white shadow-lg">
+                   <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse" />
+                </div>
               </div>
             </Marker>
           </>
@@ -134,7 +138,13 @@ const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
 
       <div className="absolute bottom-6 left-6 flex items-center space-x-3 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/50 shadow-xl">
         <div
-          className={`p-2 rounded-xl ${riskLevel === "High" ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}
+          className={`p-2 rounded-xl ${
+            riskLevel === "High"
+              ? "bg-rose-100 text-rose-700"
+              : riskLevel === "Medium"
+              ? "bg-amber-100 text-amber-700"
+              : "bg-emerald-100 text-emerald-700"
+          }`}
         >
           <AlertCircle size={20} />
         </div>
@@ -143,7 +153,13 @@ const RiskMap: React.FC<RiskMapProps> = ({ waypoints, riskLevel }) => {
             Route Risk Level
           </p>
           <p
-            className={`text-sm font-black ${riskLevel === "High" ? "text-rose-700" : "text-emerald-700"}`}
+            className={`text-sm font-black ${
+              riskLevel === "High"
+                ? "text-rose-700"
+                : riskLevel === "Medium"
+                ? "text-amber-700"
+                : "text-emerald-700"
+            }`}
           >
             {riskLevel} Alert
           </p>

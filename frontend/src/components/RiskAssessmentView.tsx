@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import VoyageForm from './VoyageForm';
 import RiskMap from './RiskMap';
 import { ShieldCheck, AlertTriangle, Wind, Waves, Thermometer, Clock, Activity } from 'lucide-react';
+import { api } from '../services/api';
+import type { VoyageAssessment } from '../types';
+import type { TabId } from '../App';
 
 interface RiskAssessmentViewProps {
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: TabId) => void;
+  setVoyageId: (id: string) => void;
 }
 
-const RiskAssessmentView: React.FC<RiskAssessmentViewProps> = ({ setActiveTab }) => {
+const RiskAssessmentView: React.FC<RiskAssessmentViewProps> = ({ setActiveTab, setVoyageId }) => {
   const [loading, setLoading] = useState(false);
-  const [assessment, setAssessment] = useState<any>(null);
+  const [assessment, setAssessment] = useState<VoyageAssessment | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const resultsRef = React.useRef<HTMLDivElement>(null);
 
   // Automatically scroll to results when assessment is loaded
@@ -21,17 +26,17 @@ const RiskAssessmentView: React.FC<RiskAssessmentViewProps> = ({ setActiveTab })
 
   const handleAssess = async (formData: any) => {
     setLoading(true);
+    setError(null);
     try {
-      // We need to update api.ts to include assessVoyage, but we'll mock it or call it directly for now
-      const response = await fetch('http://localhost:8000/api/assess-voyage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await response.json();
+      const data = await api.assessVoyage(formData);
       setAssessment(data);
-    } catch (error) {
-      console.error("Risk assessment failed:", error);
+      if (data.voyage_id) {
+        setVoyageId(data.voyage_id);
+      }
+    } catch (err: any) {
+      console.error("Risk assessment failed:", err);
+      const errMsg = err.response?.data?.detail || "Failed to perform risk assessment. Please verify connection and coordinates.";
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -43,6 +48,16 @@ const RiskAssessmentView: React.FC<RiskAssessmentViewProps> = ({ setActiveTab })
         <h1 className="text-3xl font-bold text-slate-900">Predictive Risk Assessment</h1>
         <p className="text-slate-500 mt-1">Data-driven probability analysis using real-time weather and load parameters.</p>
       </header>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-2">
+          <AlertTriangle size={18} />
+          <div>
+            <p className="font-semibold text-sm">Assessment Error</p>
+            <p className="text-xs">{error}</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col space-y-8">
         <div className="w-full">

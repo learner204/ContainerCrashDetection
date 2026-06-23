@@ -5,9 +5,12 @@ import AnalysisView from './components/AnalysisView';
 import LiveView from './components/LiveView';
 import HistoryView from './components/HistoryView';
 
+export type TabId = 'risk' | 'analysis' | 'live' | 'history';
+
 function App() {
-  const [activeTab, setActiveTab] = useState('risk');
+  const [activeTab, setActiveTab] = useState<TabId>('risk');
   const [hasError, setHasError] = useState(false);
+  const [voyageId, setVoyageId] = useState<string | null>(null);
 
   // Simple error boundary effect
   useEffect(() => {
@@ -15,8 +18,16 @@ function App() {
       console.error("Caught error:", error);
       setHasError(true);
     };
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled rejection:", event);
+      setHasError(true);
+    };
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
   }, []);
 
   if (hasError) {
@@ -37,24 +48,31 @@ function App() {
     );
   }
 
+  const handleTabChange = (tab: TabId) => {
+    if (tab === 'risk') {
+      setVoyageId(null);
+    }
+    setActiveTab(tab);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'risk':
-        return <RiskAssessmentView setActiveTab={setActiveTab} />;
+        return <RiskAssessmentView setActiveTab={handleTabChange} setVoyageId={setVoyageId} />;
       case 'analysis':
         return <AnalysisView />;
       case 'live':
-        return <LiveView />;
+        return <LiveView voyageId={voyageId} />;
       case 'history':
         return <HistoryView />;
       default:
-        return <RiskAssessmentView setActiveTab={setActiveTab} />;
+        return <RiskAssessmentView setActiveTab={handleTabChange} setVoyageId={setVoyageId} />;
     }
   };
 
   return (
     <div className="flex min-h-screen bg-[#FAF8F3]">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
       <main className="flex-1 ml-64 p-8 transition-all duration-300">
         <div className="max-w-7xl mx-auto">
           {renderContent()}

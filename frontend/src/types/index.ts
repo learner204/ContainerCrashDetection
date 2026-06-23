@@ -40,5 +40,18 @@ const EVENT_LABELS: Record<number, string> = {
   3: "Container Shift"
 };
 
+export interface VoyageAssessment {
+  voyage_id: string;
+  probability: number;
+  risk_level: 'Low' | 'Medium' | 'High';
+  waypoints: Array<{ lat: number; lng: number; name: string }>;
+  weather_summary: {
+    max_wave_height: number;
+    max_wind_speed: number;
+    duration_days: number;
+    cargo_fragility: number;
+  };
+}
+
 export type { EventLog, AnalysisResult };
 export { EVENT_LABELS };

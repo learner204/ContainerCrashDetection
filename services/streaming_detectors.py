@@ -1,3 +1,4 @@
+# NOTE: This module is currently unused in the project but kept for potential future streaming enhancements.
 import numpy as np
 from services.detector import CrashDetector
 

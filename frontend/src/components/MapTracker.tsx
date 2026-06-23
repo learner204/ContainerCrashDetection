@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl } from 'react-map-gl/maplibre';
 import type { ViewStateChangeEvent } from 'react-map-gl/maplibre';
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 import { Anchor } from 'lucide-react';
 
-const MAPTILER_KEY = 'SUcVoJR2d0QVGbessECU';
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY || 'SUcVoJR2d0QVGbessECU';
 maptilersdk.config.apiKey = MAPTILER_KEY;
 
 interface MapTrackerProps {
@@ -23,24 +23,29 @@ const MapTracker: React.FC<MapTrackerProps> = ({ lat, lng, location }) => {
 
   // Keep track of the path traveled
   const [path, setPath] = useState<[number, number][]>([]);
+  const prevCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    // If we move a long distance, it's a new voyage - reset view and path
-    setPath(prev => {
-        if (prev.length > 0) {
-            const lastPoint = prev[prev.length - 1];
-            const dist = Math.sqrt(Math.pow(lastPoint[0] - lng, 2) + Math.pow(lastPoint[1] - lat, 2));
-            if (dist > 10) {
-                // Large jump detected: Center camera on new location and reset path
-                setViewport(v => ({ ...v, latitude: lat, longitude: lng, zoom: 2.5 }));
-                return [[lng, lat] as [number, number]];
-            }
-        } else {
-            // First point: ensure viewport matches
-            setViewport(v => ({ ...v, latitude: lat, longitude: lng }));
-        }
-        return [...prev, [lng, lat] as [number, number]].slice(-500);
-    });
+    if (!prevCoordsRef.current) {
+      // First point: ensure viewport matches
+      setViewport(v => ({ ...v, latitude: lat, longitude: lng }));
+      setPath([[lng, lat]]);
+      prevCoordsRef.current = { lat, lng };
+      return;
+    }
+
+    const { lat: prevLat, lng: prevLng } = prevCoordsRef.current;
+    const dist = Math.sqrt(Math.pow(prevLng - lng, 2) + Math.pow(prevLat - lat, 2));
+
+    if (dist > 10) {
+      // Large jump detected: Center camera on new location and reset path
+      setViewport(v => ({ ...v, latitude: lat, longitude: lng, zoom: 2.5 }));
+      setPath([[lng, lat]]);
+    } else if (dist > 0.0001) {
+      setPath(prev => [...prev, [lng, lat] as [number, number]].slice(-500));
+    }
+    
+    prevCoordsRef.current = { lat, lng };
   }, [lat, lng]);
 
   const geojson: any = useMemo(() => {

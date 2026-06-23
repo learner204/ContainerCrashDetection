@@ -211,7 +211,7 @@ const VoyageForm: React.FC<VoyageFormProps> = ({ onAssess, loading }) => {
             <input 
               type="number" 
               value={formData.container_count}
-              onChange={e => setFormData({...formData, container_count: parseInt(e.target.value)})}
+              onChange={e => setFormData({...formData, container_count: parseInt(e.target.value) || 1})}
               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
             />
           </div>

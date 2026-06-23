@@ -1,18 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Radio, History, Shield } from 'lucide-react';
+import type { TabId } from '../App';
 
 interface SidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab: TabId;
+  setActiveTab: (tab: TabId) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+  const [online, setOnline] = useState(false);
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+        const healthUrl = apiBase.replace(/\/api$/, '') + '/health';
+        const res = await fetch(healthUrl);
+        setOnline(res.ok);
+      } catch (e) {
+        setOnline(false);
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const menuItems = [
     { id: 'risk', label: 'Risk Assessment', icon: Shield },
     { id: 'analysis', label: 'Analysis', icon: Activity },
     { id: 'live', label: 'Live Stream', icon: Radio },
     { id: 'history', label: 'History', icon: History },
-  ];
+  ] as const;
 
   return (
     <div className="w-64 bg-slate-900 h-screen fixed left-0 top-0 flex flex-col text-slate-300">
@@ -47,8 +66,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
         <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
           <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">System Status</p>
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" />
-            <span className="text-xs text-slate-300 font-medium">Core API Online</span>
+            <div className={`w-2 h-2 rounded-full animate-pulse ${online ? 'bg-status-success' : 'bg-rose-500'}`} />
+            <span className="text-xs text-slate-300 font-medium">
+              {online ? 'Core API Online' : 'API Offline'}
+            </span>
           </div>
         </div>
       </div>

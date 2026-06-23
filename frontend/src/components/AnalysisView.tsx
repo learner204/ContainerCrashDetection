@@ -9,14 +9,18 @@ const AnalysisView: React.FC = () => {
   const [selectedLabel, setSelectedLabel] = useState<number>(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await api.analyze(selectedLabel);
       setResult(data);
-    } catch (error) {
-      console.error("Error analyzing signal:", error);
+    } catch (err: any) {
+      console.error("Error analyzing signal:", err);
+      const errMsg = err.response?.data?.detail || "Failed to analyze signal. Please try again.";
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -36,6 +40,16 @@ const AnalysisView: React.FC = () => {
         <h1 className="text-3xl font-bold text-slate-900">Signal Analysis</h1>
         <p className="text-slate-500 mt-1">Simulate sensor events and validate detection parameters.</p>
       </header>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-2">
+          <AlertTriangle size={18} />
+          <div>
+            <p className="font-semibold text-sm">Analysis Error</p>
+            <p className="text-xs">{error}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3 space-y-6">

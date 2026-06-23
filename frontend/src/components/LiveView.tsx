@@ -1,33 +1,103 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { WS_URL, api } from '../services/api';
+import { getWebSocketUrl, api } from '../services/api';
 import type { StreamData } from '../types';
 import SignalChart from './SignalChart';
 import MapTracker from './MapTracker';
 import { Activity, AlertCircle, Shield, Anchor, Compass, Play } from 'lucide-react';
 
-const LiveView: React.FC = () => {
+interface LiveViewProps {
+  voyageId: string | null;
+}
+
+const LiveView: React.FC<LiveViewProps> = ({ voyageId }) => {
   const [data, setData] = useState<StreamData | null>(null);
   const [signalBuffer, setSignalBuffer] = useState<number[]>([]);
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
 
+  const isMountedRef = useRef(true);
+  const reconnectTimeoutRef = useRef<any>(null);
+
   useEffect(() => {
-    socketRef.current = new WebSocket(WS_URL);
-    socketRef.current.onopen = () => setConnected(true);
-    socketRef.current.onclose = () => setConnected(false);
-    socketRef.current.onmessage = (event) => {
-      const parsed: StreamData = JSON.parse(event.data);
-      setData(parsed);
-      if (parsed.is_active) {
-        setSignalBuffer(prev => [...prev, ...parsed.signal].slice(-250));
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
     };
-    return () => socketRef.current?.close();
   }, []);
 
+  useEffect(() => {
+    let socket: WebSocket | null = null;
+
+    const connect = () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+
+      const url = getWebSocketUrl(voyageId);
+      socket = new WebSocket(url);
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        if (isMountedRef.current) {
+          setConnected(true);
+        }
+      };
+
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        if (isMountedRef.current) {
+          setConnected(false);
+        }
+      };
+
+      socket.onclose = () => {
+        if (isMountedRef.current) {
+          setConnected(false);
+          // Try to reconnect after 2 seconds
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              connect();
+            }
+          }, 2000);
+        }
+      };
+
+      socket.onmessage = (event) => {
+        if (!isMountedRef.current) return;
+        try {
+          const parsed: StreamData = JSON.parse(event.data);
+          setData(parsed);
+          if (parsed.is_active) {
+            setSignalBuffer(prev => [...prev, ...parsed.signal].slice(-250));
+          }
+        } catch (err) {
+          console.error("Failed to parse WebSocket message:", err);
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, [voyageId]);
+
   const handleStartVoyage = async () => {
+    if (!voyageId) {
+      console.error("Cannot start voyage: No active session ID found.");
+      return;
+    }
     try {
-      await api.startVoyage();
+      await api.startVoyage(voyageId);
     } catch (error) {
       console.error("Failed to start voyage:", error);
     }
@@ -151,15 +221,19 @@ const LiveView: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500 font-medium">Speed</span>
-                    <span className="text-xs text-slate-900 font-bold">22.4 kn</span>
+                    <span className="text-xs text-slate-900 font-bold">
+                      {data.is_active 
+                        ? `${(21.5 + Math.sin(new Date().getTime() / 8000) * 1.2 + Math.cos(new Date().getTime() / 23000) * 0.4).toFixed(1)} kn` 
+                        : '--'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500 font-medium">Region</span>
                     <span className="text-xs text-slate-900 font-bold">{data.telemetry.location}</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-50 flex items-center space-x-2 text-emerald-500">
+                  <div className={`pt-2 border-t border-slate-50 flex items-center space-x-2 ${data.is_active ? 'text-emerald-500' : 'text-slate-400'}`}>
                     <Compass size={12} />
-                    <span className="text-[10px] font-bold uppercase">On Schedule</span>
+                    <span className="text-[10px] font-bold uppercase">{data.is_active ? 'On Schedule' : 'Inactive'}</span>
                   </div>
                </div>
              ) : (
