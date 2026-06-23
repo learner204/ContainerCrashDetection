@@ -6,5 +6,5 @@ joblib
 numpy
 scikit-learn
 plotly
-sqlite3
-asyncio
+requests
+websockets
